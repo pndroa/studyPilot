@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix next-app\" \"npm run start --prefix electron\"",
+    "build": "npm run build --prefix next-app && npm run build --prefix electron",
+    "desktop": "concurrently \"npm run dev --prefix next-app\" \"npm run electron-dev --prefix electron\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0"
+  }
+}
