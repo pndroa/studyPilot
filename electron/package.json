@@ -1,0 +1,40 @@
+{
+  "name": "studypilot-electron",
+  "version": "1.0.0",
+  "description": "Electron wrapper for the StudyPilot Next.js app",
+  "main": "main.js",
+  "scripts": {
+    "electron-dev": "cross-env NODE_ENV=development electron .",
+    "build": "electron-builder"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "electron": "^38.3.0",
+    "electron-builder": "^26.0.12",
+    "cross-env": "^10.1.0",
+    "@types/node": "^24.7.2",
+    "typescript": "^5.9.3"
+  },
+  "build": {
+    "appId": "com.studypilot.app",
+    "productName": "StudyPilot",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "package.json"
+    ],
+    "linux": {
+      "target": "AppImage"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    }
+  }
+}
