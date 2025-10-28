@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Builds
+.next/
+dist/
+out/
+build/
+
+# Local data
+next-app/data/
+data/
+
+# Environment
+.env
+.env.local
+
+# Logs & System
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
