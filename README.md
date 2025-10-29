@@ -8,7 +8,7 @@
 
 - **Next.js (TypeScript)** – Fullstack framework (UI + API routes)
 - **LangChain.js** – LLM orchestration and RAG (Retrieval-Augmented Generation)
-- **ChromaDB** – Local vector database for document storage and embeddings
+- **Redis** – Local vector database for document storage and embeddings
 - **Electron** – Desktop wrapper for Next.js, providing a native app experience
 - **LLMs supported:** OpenAI, Ollama, and Google Gemini
 
@@ -88,10 +88,9 @@ npx electron-builder
 
 ## Local Data
 
-All local files (ChromaDB and uploads) are stored in:
+All local files (uploads) are stored in:
 
 ```
 next-app/data/
-├── chroma/     # Vector database
 └── uploads/    # User documents for RAG
 ```
