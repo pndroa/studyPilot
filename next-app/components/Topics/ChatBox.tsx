@@ -8,13 +8,15 @@ import {
   Typography,
   Card,
   CardContent,
+  useTheme,
 } from '@mui/material'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { ChatMessage, Sender } from '@/types/topics'
 
 interface ChatBoxProps {
   topicId: string
   initialMessages?: ChatMessage[]
-  onNewMessage?: (m: ChatMessage) => void // optional callback, falls du später persistieren willst
+  onNewMessage?: (m: ChatMessage) => void
 }
 
 export default function ChatBox({
@@ -24,6 +26,7 @@ export default function ChatBox({
 }: ChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
+  const theme = useTheme()
 
   useEffect(() => {
     setMessages(initialMessages)
@@ -47,7 +50,6 @@ export default function ChatBox({
     onNewMessage?.(userMsg)
     setInput('')
 
-    // Mock KI-Antwort
     setTimeout(() => {
       const aiMsg = makeMessage(
         'ai',
@@ -63,27 +65,59 @@ export default function ChatBox({
     [messages]
   )
 
+  const aiBg =
+    theme.palette.mode === 'dark'
+      ? theme.palette.primary.dark
+      : theme.palette.primary.light
+
+  const userBg =
+    theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff'
+
   return (
     <Box>
-      <Card sx={{ mb: 2, height: 420, overflowY: 'auto', p: 2 }}>
-        {sortedMessages.map((m) => (
-          <CardContent
-            key={m.id}
-            sx={{
-              bgcolor: m.sender === 'ai' ? '#e3f2fd' : '#fff',
-              mb: 1,
-              borderRadius: 2,
-            }}
-          >
-            <Typography
-              variant='body2'
-              fontWeight={m.sender === 'ai' ? 'bold' : 'normal'}
+      <Card
+        sx={{
+          mb: 2,
+          height: 420,
+          overflowY: 'auto',
+          p: 2,
+          bgcolor: theme.palette.background.paper,
+          transition: 'background-color 0.4s ease, color 0.4s ease',
+        }}
+      >
+        <AnimatePresence initial={false}>
+          {sortedMessages.map((m) => (
+            <motion.div
+              key={m.id}
+              initial={{
+                opacity: 0,
+                x: m.sender === 'ai' ? -50 : 50,
+              }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: m.sender === 'ai' ? -30 : 30 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              {m.sender === 'ai' ? 'StudyPilot KI:' : 'Du:'}
-            </Typography>
-            <Typography>{m.text}</Typography>
-          </CardContent>
-        ))}
+              <CardContent
+                sx={{
+                  bgcolor: m.sender === 'ai' ? aiBg : userBg,
+                  color: theme.palette.text.primary,
+                  mb: 1,
+                  borderRadius: 2,
+                  transition: 'background-color 0.4s ease, color 0.4s ease',
+                }}
+              >
+                <Typography
+                  variant='body2'
+                  fontWeight={m.sender === 'ai' ? 'bold' : 'normal'}
+                  sx={{ opacity: 0.8 }}
+                >
+                  {m.sender === 'ai' ? 'StudyPilot KI:' : 'Du:'}
+                </Typography>
+                <Typography variant='body2'>{m.text}</Typography>
+              </CardContent>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </Card>
 
       <Box display='flex' gap={1}>

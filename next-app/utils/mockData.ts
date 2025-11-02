@@ -1,7 +1,7 @@
 import type { Topic, ChatMessage, QuizQuestion } from '@/types/topics'
 import type { DashboardStats, QuizDataPoint } from '@/types/dashboard'
 
-// --- Dashboard-Stats (unverändert) ---
+/* ------------------------------ Dashboard Stats ------------------------------ */
 export const mockStats: DashboardStats = {
   totalSessions: 42,
   avgScore: 85,
@@ -25,20 +25,20 @@ export const mockQuizTrend: QuizDataPoint[] = [
   { date: '05.11', score: 95 },
 ]
 
-// --- Themen ---
+/* --------------------------------- Topics ---------------------------------- */
 export const mockTopics: Topic[] = [
   { id: 'vorlesung-1', title: 'Vorlesung 1: Einführung in KI' },
   { id: 'vorlesung-2', title: 'Vorlesung 2: Maschinelles Lernen' },
 ]
 
-// --- Chat-Verläufe je Thema ---
+/* ---------------------------------- Chat ----------------------------------- */
 export const mockChatByTopic: Record<string, ChatMessage[]> = {
   'vorlesung-1': [
     {
       id: 'c1',
       topicId: 'vorlesung-1',
       sender: 'ai',
-      text: 'Kurze Zusammenfassung: Künstliche Intelligenz (KI) umfasst Methoden, um Maschinen Aufgaben zu ermöglichen, die menschliche Intelligenz erfordern (z. B. Mustererkennung, Planung, Sprache).',
+      text: 'Kurze Zusammenfassung: Künstliche Intelligenz (KI) umfasst Methoden, um Maschinen Aufgaben zu ermöglichen, die menschliche Intelligenz erfordern.',
       timestamp: '2025-10-30T09:00:00.000Z',
     },
     {
@@ -52,7 +52,7 @@ export const mockChatByTopic: Record<string, ChatMessage[]> = {
       id: 'c3',
       topicId: 'vorlesung-1',
       sender: 'ai',
-      text: 'Schwache (narrow) KI löst spezialisierte Aufgaben (z. B. Bildklassifikation). Starke KI hätte allgemeine kognitive Fähigkeiten wie ein Mensch — existiert aktuell nicht.',
+      text: 'Schwache (narrow) KI löst spezialisierte Aufgaben. Starke KI hätte allgemeine kognitive Fähigkeiten wie ein Mensch – existiert aktuell nicht.',
       timestamp: '2025-10-30T09:02:20.000Z',
     },
   ],
@@ -67,7 +67,7 @@ export const mockChatByTopic: Record<string, ChatMessage[]> = {
   ],
 }
 
-// --- Quizfragen je Thema ---
+/* ----------------------------------- Quiz ---------------------------------- */
 export const mockQuizzesByTopic: Record<string, QuizQuestion[]> = {
   'vorlesung-1': [
     {
@@ -119,6 +119,53 @@ export const mockQuizzesByTopic: Record<string, QuizQuestion[]> = {
         'Random Forest Klassifikation',
       ],
       answerIndex: 1,
+    },
+  ],
+}
+
+/* ----------------------------- FlashCards (neu) ---------------------------- */
+export interface FlashCardData {
+  id: string
+  question: string
+  answer: string
+  topicId: string
+}
+
+export const mockFlashCardsByTopic: Record<string, FlashCardData[]> = {
+  'vorlesung-1': [
+    {
+      id: 'f1',
+      topicId: 'vorlesung-1',
+      question: 'Was ist ein neuronales Netzwerk?',
+      answer: 'Ein Modell, das vom menschlichen Gehirn inspiriert ist.',
+    },
+    {
+      id: 'f2',
+      topicId: 'vorlesung-1',
+      question: 'Was beschreibt überwachtens Lernen?',
+      answer: 'Lernen aus beschrifteten Daten mit bekannten Zielwerten.',
+    },
+    {
+      id: 'f3',
+      topicId: 'vorlesung-1',
+      question: 'Was ist der Unterschied zwischen starker und schwacher KI?',
+      answer:
+        'Schwache KI löst spezialisierte Aufgaben, starke KI hat hypothetisch menschenähnliche Intelligenz.',
+    },
+  ],
+  'vorlesung-2': [
+    {
+      id: 'f1-v2',
+      topicId: 'vorlesung-2',
+      question: 'Was versteht man unter überwachtem Lernen?',
+      answer:
+        'Ein Modell lernt aus beschrifteten Trainingsdaten, um neue Eingaben vorherzusagen.',
+    },
+    {
+      id: 'f2-v2',
+      topicId: 'vorlesung-2',
+      question: 'Was ist ein Beispiel für unüberwachtes Lernen?',
+      answer: 'K-Means-Clustering.',
     },
   ],
 }

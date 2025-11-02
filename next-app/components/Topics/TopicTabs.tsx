@@ -9,7 +9,10 @@ export default function TopicTabs({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { topicId } = useParams()
 
-  const currentTab = pathname.endsWith('/quiz') ? 'quiz' : 'chat'
+  let currentTab: string = 'chat'
+
+  if (pathname.endsWith('/quiz')) currentTab = 'quiz'
+  else if (pathname.endsWith('/flashCard')) currentTab = 'flashCard'
 
   return (
     <Box>
@@ -25,6 +28,12 @@ export default function TopicTabs({ children }: { children: React.ReactNode }) {
           value='quiz'
           component={Link}
           href={`/topics/${topicId}/quiz`}
+        />
+        <Tab
+          label='FlashCard'
+          value='flashCard'
+          component={Link}
+          href={`/topics/${topicId}/flashCard`}
         />
       </Tabs>
       {children}

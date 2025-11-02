@@ -2,14 +2,18 @@
 
 import { Box, Typography } from '@mui/material'
 import QuizCard from '@/components/Topics/QuizCard'
-import { useParams } from 'next/navigation'
+import { useState } from 'react'
 import { mockQuizzesByTopic } from '@/utils/mockData'
+import { useParams } from 'next/navigation'
 
 export default function QuizPage() {
   const params = useParams<{ topicId: string }>()
   const topicId = params.topicId
+  const [quizzes, setQuizzes] = useState(mockQuizzesByTopic[topicId] ?? [])
 
-  const questions = mockQuizzesByTopic[topicId] ?? []
+  const handleDelete = (id: string) => {
+    setQuizzes((prev) => prev.filter((q) => q.id !== id))
+  }
 
   return (
     <Box>
@@ -17,17 +21,17 @@ export default function QuizPage() {
         Quizfragen zu diesem Thema
       </Typography>
 
-      {questions.length === 0 ? (
-        <Typography variant='body1'>
-          Für dieses Thema gibt es noch keine Quizfragen.
-        </Typography>
+      {quizzes.length === 0 ? (
+        <Typography>Keine Quizfragen vorhanden.</Typography>
       ) : (
-        questions.map((q) => (
+        quizzes.map((q) => (
           <QuizCard
             key={q.id}
+            id={q.id}
             question={q.question}
             options={q.options}
-            answer={q.options[q.answerIndex]}
+            answerIndex={q.answerIndex}
+            onDelete={handleDelete}
           />
         ))
       )}
