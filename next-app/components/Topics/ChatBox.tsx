@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ChatMessage, Sender } from '@/types/topics'
+import ChatImportButton from '@/components/Topics/ChatImportButton'
 
 interface ChatBoxProps {
   topicId: string
@@ -50,6 +51,7 @@ export default function ChatBox({
     onNewMessage?.(userMsg)
     setInput('')
 
+    // Fake-Antwort
     setTimeout(() => {
       const aiMsg = makeMessage(
         'ai',
@@ -58,6 +60,22 @@ export default function ChatBox({
       setMessages((prev) => [...prev, aiMsg])
       onNewMessage?.(aiMsg)
     }, 700)
+  }
+
+  // WICHTIG: wenn Datei hochgeladen wurde
+  const handleImported = (fileInfo: { fileName: string; path?: string }) => {
+    const userMsg = makeMessage(
+      'user',
+      `📄 Datei importiert: ${fileInfo.fileName}`
+    )
+    const aiMsg = makeMessage(
+      'ai',
+      'Cool, ich habe das Dokument. Was soll ich damit machen? (Zusammenfassen, Fragen erstellen, Karteikarten …)'
+    )
+
+    setMessages((prev) => [...prev, userMsg, aiMsg])
+    onNewMessage?.(userMsg)
+    onNewMessage?.(aiMsg)
   }
 
   const sortedMessages = useMemo(
@@ -75,6 +93,19 @@ export default function ChatBox({
 
   return (
     <Box>
+      {/* Header über dem Chat */}
+      <Box
+        mb={1.5}
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Chat
+        </Typography>
+        <ChatImportButton onUploaded={handleImported} />
+      </Box>
+
       <Card
         sx={{
           mb: 2,
@@ -107,23 +138,23 @@ export default function ChatBox({
                 }}
               >
                 <Typography
-                  variant='body2'
+                  variant="body2"
                   fontWeight={m.sender === 'ai' ? 'bold' : 'normal'}
                   sx={{ opacity: 0.8 }}
                 >
                   {m.sender === 'ai' ? 'StudyPilot KI:' : 'Du:'}
                 </Typography>
-                <Typography variant='body2'>{m.text}</Typography>
+                <Typography variant="body2">{m.text}</Typography>
               </CardContent>
             </motion.div>
           ))}
         </AnimatePresence>
       </Card>
 
-      <Box display='flex' gap={1}>
+      <Box display="flex" gap={1}>
         <TextField
           fullWidth
-          placeholder='Frage stellen oder Zusammenfassung anfordern...'
+          placeholder="Frage stellen oder Zusammenfassung anfordern..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -133,7 +164,7 @@ export default function ChatBox({
             }
           }}
         />
-        <Button variant='contained' onClick={handleSend}>
+        <Button variant="contained" onClick={handleSend}>
           Senden
         </Button>
       </Box>
