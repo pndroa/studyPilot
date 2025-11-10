@@ -63,14 +63,18 @@ export default function ChatBox({
   }
 
   // WICHTIG: wenn Datei hochgeladen wurde
-  const handleImported = (fileInfo: { fileName: string; path?: string }) => {
+  const handleImported = (fileInfo: {
+    fileName: string
+    documentId: string
+    createdAt: string
+  }) => {
     const userMsg = makeMessage(
       'user',
-      `📄 Datei importiert: ${fileInfo.fileName}`
+      `📄 Datei analysiert: ${fileInfo.fileName}`
     )
     const aiMsg = makeMessage(
       'ai',
-      'Cool, ich habe das Dokument. Was soll ich damit machen? (Zusammenfassen, Fragen erstellen, Karteikarten …)'
+      'Cool, ich habe das Dokument eingebettet. Schau dir die Analyse an oder stelle Fragen dazu!'
     )
 
     setMessages((prev) => [...prev, userMsg, aiMsg])

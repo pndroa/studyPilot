@@ -9,12 +9,18 @@ import {
   Typography,
 } from '@mui/material'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
+import type { DocumentAnalysisResponse } from '@/types/analysis'
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 MB
 const ALLOWED_TYPES = ['application/pdf', 'text/plain']
 
+type ChatImportResult = Pick<
+  DocumentAnalysisResponse,
+  'fileName' | 'documentId' | 'createdAt'
+>
+
 interface ChatImportButtonProps {
-  onUploaded?: (data: { fileName: string; path?: string }) => void
+  onUploaded?: (data: ChatImportResult) => void
 }
 
 export default function ChatImportButton({ onUploaded }: ChatImportButtonProps) {
@@ -47,19 +53,23 @@ export default function ChatImportButton({ onUploaded }: ChatImportButtonProps) 
     setError(null)
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch('/api/analyze', {
         method: 'POST',
         body: formData,
       })
       const json = await res.json()
 
       if (!res.ok) {
-        setError(json?.message ?? 'Upload fehlgeschlagen.')
+        setError(json?.message ?? 'Analyse fehlgeschlagen.')
       } else {
-        onUploaded?.(json)
+        onUploaded?.({
+          fileName: json.fileName,
+          documentId: json.documentId,
+          createdAt: json.createdAt,
+        })
       }
     } catch (err) {
-      setError('Fehler beim Upload.')
+      setError('Fehler bei der Analyse.')
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''

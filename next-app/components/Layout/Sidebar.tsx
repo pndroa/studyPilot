@@ -21,6 +21,7 @@ import { useState } from 'react'
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Themen', href: '/topics' },
+  { label: 'Analyse', href: '/analysis' },
 ]
 
 const drawerWidth = 200
@@ -39,7 +40,7 @@ export default function Sidebar() {
     <Box
       sx={{
         bgcolor: theme.palette.background.paper,
-        height: '100%',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         borderRight: `1px solid ${theme.palette.divider}`,
@@ -146,14 +147,20 @@ export default function Sidebar() {
         width: open ? drawerWidth : 60,
         flexShrink: 0,
         transition: 'width 0.3s ease',
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1100,
-        overflow: 'hidden',
+        alignSelf: 'stretch',
+        bgcolor: theme.palette.background.paper,
       }}
     >
-      {sidebarContent}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflow: 'hidden',
+        }}
+      >
+        {sidebarContent}
+      </Box>
     </Box>
   )
 }
