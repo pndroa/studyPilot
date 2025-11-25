@@ -23,7 +23,9 @@ interface ChatImportButtonProps {
   onUploaded?: (data: ChatImportResult) => void
 }
 
-export default function ChatImportButton({ onUploaded }: ChatImportButtonProps) {
+export default function ChatImportButton({
+  onUploaded,
+}: ChatImportButtonProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -69,7 +71,7 @@ export default function ChatImportButton({ onUploaded }: ChatImportButtonProps) 
         })
       }
     } catch (err) {
-      setError('Fehler bei der Analyse.')
+      setError('Fehler bei der Analyse' + err)
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''
@@ -77,24 +79,24 @@ export default function ChatImportButton({ onUploaded }: ChatImportButtonProps) 
   }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="flex-end" gap={0.5}>
+    <Box display='flex' flexDirection='column' alignItems='flex-end' gap={0.5}>
       <input
         ref={inputRef}
-        type="file"
+        type='file'
         hidden
-        accept=".pdf,.txt"
+        accept='.pdf,.txt'
         onChange={handleSelect}
       />
-      <Tooltip title="Lernmaterial importieren">
+      <Tooltip title='Lernmaterial importieren'>
         <span>
-          <IconButton onClick={handleClick} disabled={uploading} size="small">
-            <UploadFileIcon fontSize="small" />
+          <IconButton onClick={handleClick} disabled={uploading} size='small'>
+            <UploadFileIcon fontSize='small' />
           </IconButton>
         </span>
       </Tooltip>
       {uploading ? <LinearProgress sx={{ width: 120 }} /> : null}
       {error ? (
-        <Typography variant="caption" color="error">
+        <Typography variant='caption' color='error'>
           {error}
         </Typography>
       ) : null}

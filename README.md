@@ -48,6 +48,28 @@ npm install
 
 ---
 
+### Configure Environment Variables
+
+The Next.js app expects a `.env.local` file inside `next-app/`. Create the file if it does not exist and add the Redis connection string:
+
+```
+REDIS_URL=redis://:studypilot-local@127.0.0.1:6379
+```
+
+---
+
+### Run Redis with Docker Compose
+
+A ready-to-use Redis setup lives in `next-app/docker/redis/docker-compose.yml`:
+Start the container locally from the same directory:
+
+```bash
+cd next-app/docker/redis
+docker compose up -d
+```
+
+---
+
 ### Start the App (Development Mode)
 
 Run both Next.js and Electron together:
@@ -84,13 +106,8 @@ cd electron
 npx electron-builder
 ```
 
----
+### Use Ollama for Offline LLMs
 
-## Local Data
-
-All local files (uploads) are stored in:
-
-```
-next-app/data/
-└── uploads/    # User documents for RAG
-```
+- Install and start [Ollama](https://ollama.com/) locally (default endpoint: `http://127.0.0.1:11434`).
+- Optional: set `OLLAMA_BASE_URL` in `next-app/.env.local` if you use a different host/port.
+- In the StudyPilot UI, open the **Ollama** section to test the connection and send prompts to local models such as `llama3` or `mistral`.
