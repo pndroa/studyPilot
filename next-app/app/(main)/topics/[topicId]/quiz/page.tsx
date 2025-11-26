@@ -16,7 +16,10 @@ import { useParams } from 'next/navigation'
 import type { QuizQuestion } from '@/types/topics'
 import type { LlmQuizResponse } from '@/types/llm'
 import { loadLlmConfig } from '@/lib/llm/config'
+import type { DocumentAnalysisResponse } from '@/types/analysis'
 const STORAGE_PREFIX = 'quizzes:'
+const DOCS_KEY = (topicId: string) => `documents:${topicId}`
+const MAX_CONTEXT_CHARS = 4000
 
 export default function QuizPage() {
   const params = useParams<{ topicId: string }>()
@@ -33,6 +36,7 @@ export default function QuizPage() {
   const [questionCount, setQuestionCount] = useState(4)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [contextDoc, setContextDoc] = useState<DocumentAnalysisResponse | null>(null)
 
   useEffect(() => {
     const cfg = loadLlmConfig()
@@ -46,6 +50,7 @@ export default function QuizPage() {
           ? cfg.geminiApiKey
           : undefined
     )
+    setContextDoc(loadDoc(topicId))
     const stored = loadStored(topicId)
     if (stored.length) {
       setQuizzes(stored)
@@ -75,6 +80,9 @@ export default function QuizPage() {
     if (!topicId) return
     setError(null)
     setIsLoading(true)
+    const docContext = contextDoc?.textPreview
+      ? contextDoc.textPreview.slice(0, MAX_CONTEXT_CHARS)
+      : undefined
     try {
       const response = await fetch('/api/llm/quiz', {
         method: 'POST',
@@ -82,7 +90,7 @@ export default function QuizPage() {
         body: JSON.stringify({
           provider,
           topic: topicId,
-          text: context,
+          text: docContext || context,
           questionCount,
           model: model || undefined,
           baseUrl: provider === 'ollama' ? baseUrl || undefined : undefined,
@@ -147,6 +155,11 @@ export default function QuizPage() {
                 multiline
                 minRows={3}
                 fullWidth
+                helperText={
+                  contextDoc
+                    ? `Verwendet automatisch das hochgeladene Dokument (${contextDoc.fileName}) als Kontext.`
+                    : 'Ohne hochgeladenes Dokument wird dieser Text als Kontext genutzt.'
+                }
               />
             </Stack>
 
@@ -191,6 +204,18 @@ function loadStored(topicId: string): QuizQuestion[] {
     return parsed.filter(isQuizQuestion)
   } catch {
     return []
+  }
+}
+
+function loadDoc(topicId: string): DocumentAnalysisResponse | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(DOCS_KEY(topicId))
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : null
+  } catch {
+    return null
   }
 }
 

@@ -43,6 +43,8 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
   const [error, setError] = useState<string | null>(null)
   const [quizStatus, setQuizStatus] = useState<string | null>(null)
   const [flashStatus, setFlashStatus] = useState<string | null>(null)
+  const [summaryStatus, setSummaryStatus] = useState<string | null>(null)
+  const [isClearing, setIsClearing] = useState(false)
 
   useEffect(() => {
     const storedCfg = loadLlmConfig()
@@ -135,6 +137,18 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
       setError(err instanceof Error ? err.message : 'Unbekannter Fehler im Chat.')
     } finally {
       setIsSending(false)
+    }
+  }
+
+  const handleClear = () => {
+    setIsClearing(true)
+    try {
+      localStorage.removeItem(STORAGE_KEYS.chat(topicId))
+    } catch {
+      // ignore
+    } finally {
+      setMessages([])
+      setIsClearing(false)
     }
   }
 
@@ -242,6 +256,52 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
     }
   }
 
+  const handleGenerateSummary = async () => {
+    if (!contextDoc?.textPreview) {
+      setSummaryStatus('Kein Dokument im Kontext. Bitte PDF hochladen.')
+      return
+    }
+    setSummaryStatus('Erzeuge Zusammenfassung ...')
+    try {
+      const response = await fetch(
+        contextDoc.documentId
+          ? `/api/documents/${encodeURIComponent(contextDoc.documentId)}/summary`
+          : `/api/topics/${topicId}/summary`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider,
+            text: contextDoc.textPreview.slice(0, MAX_CONTEXT_CHARS),
+            model: model || undefined,
+            baseUrl: provider === 'ollama' ? baseUrl || undefined : undefined,
+            apiKey: provider !== 'ollama' ? apiKey || undefined : undefined,
+          }),
+        }
+      )
+
+      const data = await response.json()
+      if (!response.ok || !data.summary) {
+        throw new Error(data?.message || 'Zusammenfassung konnte nicht erstellt werden.')
+      }
+      const summaryText =
+        typeof data.summary?.summary === 'string'
+          ? data.summary.summary
+          : typeof data.summary === 'string'
+            ? data.summary
+            : ''
+      setSummaryStatus(
+        summaryText && summaryText.length > 0
+          ? `Zusammenfassung erstellt. Im Tab "Zusammenfassung" einsehbar.`
+          : 'Zusammenfassung erstellt. Im Tab "Zusammenfassung" einsehbar.'
+      )
+    } catch (err) {
+      setSummaryStatus(
+        err instanceof Error ? err.message : 'Fehler bei der Zusammenfassung.'
+      )
+    }
+  }
+
   return (
     <Box>
       <Card sx={{ mb: 2 }}>
@@ -333,10 +393,17 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
           <Button variant='outlined' onClick={handleGenerateFlashcards}>
             Flashcards aus PDF erzeugen
           </Button>
+          <Button variant='outlined' onClick={handleGenerateSummary}>
+            Zusammenfassung aus PDF
+          </Button>
+          <Button variant='text' color='error' onClick={handleClear} disabled={isSending || isClearing}>
+            {isClearing ? 'Leeren...' : 'Chat leeren'}
+          </Button>
         </Stack>
         {error && <Alert severity='error'>{error}</Alert>}
         {quizStatus && <Alert severity='info'>{quizStatus}</Alert>}
         {flashStatus && <Alert severity='info'>{flashStatus}</Alert>}
+        {summaryStatus && <Alert severity='info'>{summaryStatus}</Alert>}
       </Stack>
     </Box>
   )
