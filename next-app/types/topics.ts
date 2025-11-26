@@ -20,3 +20,10 @@ export interface QuizQuestion {
   options: string[]
   answerIndex: number
 }
+
+export interface FlashCardData {
+  id: string
+  topicId: string
+  question: string
+  answer: string
+}

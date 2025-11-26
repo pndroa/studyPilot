@@ -8,5 +8,8 @@
   "devDependencies": {
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0"
+  },
+  "dependencies": {
+    "@google/genai": "^1.30.0"
   }
 }
