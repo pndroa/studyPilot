@@ -1,4 +1,5 @@
 import type { TextChunk } from '../lib/document/chunking'
+import type { LlmProvider } from './llm'
 
 export type AnalysisStepStatus =
   | 'pending'
@@ -28,6 +29,14 @@ export interface DocumentSummary {
   chunkCount: number
 }
 
+export interface DocumentSummaryResult {
+  summary: string
+  provider: LlmProvider
+  model: string
+  usedEndpoint?: string
+  generatedAt: string
+}
+
 export interface DocumentAnalysisResponse {
   documentId: string
   createdAt: string
@@ -47,4 +56,5 @@ export interface DocumentAnalysisResponse {
       score: number
     }>
   }
+  summary?: DocumentSummaryResult
 }
