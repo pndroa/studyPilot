@@ -14,10 +14,7 @@ import type { DocumentAnalysisResponse } from '@/types/analysis'
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 MB
 const ALLOWED_TYPES = ['application/pdf', 'text/plain']
 
-type ChatImportResult = Pick<
-  DocumentAnalysisResponse,
-  'fileName' | 'documentId' | 'createdAt'
->
+type ChatImportResult = DocumentAnalysisResponse
 
 interface ChatImportButtonProps {
   onUploaded?: (data: ChatImportResult) => void
@@ -64,11 +61,7 @@ export default function ChatImportButton({
       if (!res.ok) {
         setError(json?.message ?? 'Analyse fehlgeschlagen.')
       } else {
-        onUploaded?.({
-          fileName: json.fileName,
-          documentId: json.documentId,
-          createdAt: json.createdAt,
-        })
+        onUploaded?.(json as ChatImportResult)
       }
     } catch (err) {
       setError('Fehler bei der Analyse' + err)

@@ -8,13 +8,8 @@ import {
   CardContent,
   useTheme,
 } from '@mui/material'
-import { useState } from 'react'
-
-interface FlashCardData {
-  id: string
-  question: string
-  answer: string
-}
+import { useEffect, useState } from 'react'
+import type { FlashCardData } from '@/types/topics'
 
 interface FlashCardProps {
   cards: FlashCardData[]
@@ -30,6 +25,12 @@ export default function FlashCard({
   const [current, setCurrent] = useState(0)
   const [flipped, setFlipped] = useState(false)
 
+  useEffect(() => {
+    setCards(initialCards)
+    setCurrent(0)
+    setFlipped(false)
+  }, [initialCards])
+
   const handleFlip = () => setFlipped((f) => !f)
 
   const handleNext = () => {
@@ -39,10 +40,10 @@ export default function FlashCard({
 
   const handleDelete = (id: string) => {
     const updated = cards.filter((c) => c.id !== id)
+    onDelete?.(id)
     setCards(updated)
     setCurrent(0)
     setFlipped(false)
-    onDelete?.(id)
   }
 
   if (cards.length === 0) {
