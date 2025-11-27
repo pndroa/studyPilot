@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { ChatMessage, Sender, FlashCardData } from '@/types/topics'
 import ChatImportButton from '@/components/Topics/ChatImportButton'
 import type { LlmProvider } from '@/types/llm'
-import type { DocumentAnalysisResponse } from '@/types/analysis'
+import type { DocumentAnalysisResponse, DocumentSummaryResult } from '@/types/analysis'
 import { loadLlmConfig } from '@/lib/llm/config'
 
 interface ChatBoxProps {
@@ -28,6 +28,7 @@ const STORAGE_KEYS = {
   docs: (topicId: string) => `documents:${topicId}`,
   quizzes: (topicId: string) => `quizzes:${topicId}`,
   flashcards: (topicId: string) => `flashcards:${topicId}`,
+  summary: (topicId: string) => `summary:${topicId}`,
 }
 const MAX_CONTEXT_CHARS = 4000
 
@@ -92,6 +93,17 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
       localStorage.setItem(
         STORAGE_KEYS.docs(topicId),
         JSON.stringify([doc])
+      )
+    } catch {
+      // ignore
+    }
+  }
+
+  const persistSummary = (summary: DocumentSummaryResult) => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEYS.summary(topicId),
+        JSON.stringify(summary)
       )
     } catch {
       // ignore
@@ -284,16 +296,27 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
       if (!response.ok || !data.summary) {
         throw new Error(data?.message || 'Zusammenfassung konnte nicht erstellt werden.')
       }
-      const summaryText =
-        typeof data.summary?.summary === 'string'
-          ? data.summary.summary
-          : typeof data.summary === 'string'
-            ? data.summary
-            : ''
+      const rawSummary = (data as { summary: any }).summary
+      const summaryResult: DocumentSummaryResult =
+        typeof rawSummary === 'string'
+          ? {
+              summary: rawSummary,
+              provider,
+              model: model || 'unknown',
+              generatedAt: new Date().toISOString(),
+            }
+          : {
+              summary: rawSummary?.summary ?? '',
+              provider: rawSummary?.provider ?? provider,
+              model: rawSummary?.model ?? (model || 'unknown'),
+              usedEndpoint: rawSummary?.usedEndpoint,
+              generatedAt: rawSummary?.generatedAt ?? new Date().toISOString(),
+            }
+      persistSummary(summaryResult)
       setSummaryStatus(
-        summaryText && summaryText.length > 0
-          ? `Zusammenfassung erstellt. Im Tab "Zusammenfassung" einsehbar.`
-          : 'Zusammenfassung erstellt. Im Tab "Zusammenfassung" einsehbar.'
+        summaryResult.summary
+          ? `Zusammenfassung gespeichert. Im Tab "Zusammenfassung" einsehbar.`
+          : 'Zusammenfassung gespeichert. Im Tab "Zusammenfassung" einsehbar.'
       )
     } catch (err) {
       setSummaryStatus(

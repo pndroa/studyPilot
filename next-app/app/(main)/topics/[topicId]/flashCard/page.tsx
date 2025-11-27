@@ -31,7 +31,7 @@ export default function FlashCardPage() {
       <Typography variant='h5' fontWeight='bold' mb={2}>
         Karteikarten
       </Typography>
-      <FlashCard cards={cards} onDelete={handleDelete} />
+      <FlashCard topicId={topicId} cards={cards} onDelete={handleDelete} />
     </Box>
   )
 }
