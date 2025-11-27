@@ -19,6 +19,7 @@ import { loadLlmConfig } from '@/lib/llm/config'
 import type { DocumentAnalysisResponse } from '@/types/analysis'
 const STORAGE_PREFIX = 'quizzes:'
 const DOCS_KEY = (topicId: string) => `documents:${topicId}`
+const PROGRESS_KEY = (topicId: string) => `quizzes:progress:${topicId}`
 const MAX_CONTEXT_CHARS = 4000
 
 export default function QuizPage() {
@@ -55,11 +56,16 @@ export default function QuizPage() {
     )
     setContextDoc(loadDoc(topicId))
     const stored = loadStored(topicId)
+    const progress = loadProgress(topicId)
     if (stored.length) {
       setQuizzes(stored)
-      setAnswers(Array(stored.length).fill(-1))
-      setCurrentIndex(0)
-      setFinished(false)
+      const nextAnswers =
+        progress && progress.answers.length === stored.length
+          ? progress.answers
+          : Array(stored.length).fill(-1)
+      setAnswers(nextAnswers)
+      setCurrentIndex(clampIndex(progress?.index ?? 0, stored.length))
+      setFinished(Boolean(progress?.finished))
     }
   }, [topicId])
 
@@ -77,6 +83,15 @@ export default function QuizPage() {
     }
   }
 
+  useEffect(() => {
+    if (quizzes.length === 0) return
+    persistProgress(topicId, {
+      index: clampIndex(currentIndex, quizzes.length),
+      answers,
+      finished,
+    })
+  }, [topicId, quizzes.length, currentIndex, answers, finished])
+
   const handleDelete = (id: string) => {
     const idx = quizzes.findIndex((q) => q.id === id)
     if (idx === -1) return
@@ -92,6 +107,9 @@ export default function QuizPage() {
       localStorage.setItem(`${STORAGE_PREFIX}${topicId}`, JSON.stringify(nextQuizzes))
     } catch {
       // ignore storage failures
+    }
+    if (nextQuizzes.length === 0) {
+      clearProgress(topicId)
     }
   }
 
@@ -129,9 +147,11 @@ export default function QuizPage() {
 
       const mapped = mapQuestions(topicId, data as LlmQuizResponse)
       persist(mapped)
-      setAnswers(Array(mapped.length).fill(-1))
+      const emptyAnswers = Array(mapped.length).fill(-1)
+      setAnswers(emptyAnswers)
       setCurrentIndex(0)
       setFinished(false)
+      persistProgress(topicId, { index: 0, answers: emptyAnswers, finished: false })
       setProgressColor('primary')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unbekannter Fehler bei der Quiz-Generierung.')
@@ -352,6 +372,57 @@ function mapQuestions(topicId: string, response: LlmQuizResponse): QuizQuestion[
     options: q.options,
     answerIndex: q.answerIndex,
   }))
+}
+
+function clampIndex(index: number, length: number) {
+  if (length <= 0) return 0
+  return Math.min(Math.max(index, 0), length - 1)
+}
+
+function loadProgress(topicId: string): {
+  index: number
+  answers: number[]
+  finished: boolean
+} | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY(topicId))
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as {
+      index?: number
+      answers?: number[]
+      finished?: boolean
+    }
+    if (typeof parsed?.index !== 'number' || !Array.isArray(parsed.answers)) {
+      return null
+    }
+    return {
+      index: parsed.index,
+      answers: parsed.answers,
+      finished: Boolean(parsed.finished),
+    }
+  } catch {
+    return null
+  }
+}
+
+function persistProgress(
+  topicId: string,
+  progress: { index: number; answers: number[]; finished: boolean }
+) {
+  try {
+    localStorage.setItem(PROGRESS_KEY(topicId), JSON.stringify(progress))
+  } catch {
+    // ignore
+  }
+}
+
+function clearProgress(topicId: string) {
+  try {
+    localStorage.removeItem(PROGRESS_KEY(topicId))
+  } catch {
+    // ignore
+  }
 }
 
 function QuestionView({

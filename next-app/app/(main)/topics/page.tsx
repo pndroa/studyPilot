@@ -12,7 +12,11 @@ const RELATED_KEYS = (topicId: string) => [
   `chat:${topicId}`,
   `documents:${topicId}`,
   `quizzes:${topicId}`,
+  `quizzes:progress:${topicId}`,
   `flashcards:${topicId}`,
+  `flashcards:progress:${topicId}`,
+  `flashcards:status:${topicId}`,
+  `summary:${topicId}`,
 ]
 
 export default function TopicsPage() {
