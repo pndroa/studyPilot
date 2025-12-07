@@ -22,7 +22,8 @@ const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Themen', href: '/topics' },
   { label: 'Analyse', href: '/analysis' },
-  { label: 'LLM', href: '/ollama' },
+  { label: 'Bibliothek', href: '/library' },
+  { label: 'LLM', href: '/llm' },
 ]
 
 const drawerWidth = 200

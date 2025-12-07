@@ -3,7 +3,7 @@ export const DEFAULT_OLLAMA_BASE_URL =
 const LIST_TIMEOUT_MS = 10_000
 const GENERATE_TIMEOUT_MS = 120_000
 
-export const SUPPORTED_OLLAMA_MODELS = ['llama3', 'mistral'] as const
+export const SUPPORTED_OLLAMA_MODELS = ['llama3', 'mistral', 'llama2'] as const
 
 export type SupportedOllamaModel = (typeof SUPPORTED_OLLAMA_MODELS)[number]
 

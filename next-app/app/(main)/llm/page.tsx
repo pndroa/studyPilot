@@ -32,10 +32,27 @@ interface ProviderTestResult {
   supportedModels?: string[]
 }
 
-const PROVIDER_OPTIONS: { value: LlmProvider; label: string; helper: string }[] = [
-  { value: 'ollama', label: 'Ollama (lokal)', helper: 'Greift auf einen lokalen Ollama-Dienst zu.' },
-  { value: 'openai', label: 'OpenAI', helper: 'Nutzt die OpenAI Chat Completions API (Server env: OPENAI_API_KEY).' },
-  { value: 'gemini', label: 'Gemini', helper: 'Nutzt die Gemini API (Server env: GEMINI_API_KEY).' },
+const PROVIDER_OPTIONS: {
+  value: LlmProvider
+  label: string
+  helper: string
+}[] = [
+  {
+    value: 'ollama',
+    label: 'Ollama (lokal)',
+    helper: 'Greift auf einen lokalen Ollama-Dienst zu.',
+  },
+  {
+    value: 'openai',
+    label: 'OpenAI',
+    helper:
+      'Nutzt die OpenAI Chat Completions API (Server env: OPENAI_API_KEY).',
+  },
+  {
+    value: 'gemini',
+    label: 'Gemini',
+    helper: 'Nutzt die Gemini API (Server env: GEMINI_API_KEY).',
+  },
 ]
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:11434'
@@ -78,8 +95,8 @@ export default function LlmPage() {
       cfg.provider === 'openai'
         ? cfg.openaiApiKey ?? ''
         : cfg.provider === 'gemini'
-          ? cfg.geminiApiKey ?? ''
-          : ''
+        ? cfg.geminiApiKey ?? ''
+        : ''
     )
     setConfigLoaded(true)
   }, [])
@@ -90,8 +107,8 @@ export default function LlmPage() {
       provider === 'openai'
         ? { openaiApiKey: apiKey }
         : provider === 'gemini'
-          ? { geminiApiKey: apiKey }
-          : {}
+        ? { geminiApiKey: apiKey }
+        : {}
     saveLlmConfig({ provider, model, baseUrl, ...keyPayload })
     // apiKey included, damit Provider-/Key-Wechsel persistent bleiben
   }, [provider, model, baseUrl, apiKey, configLoaded])
@@ -133,10 +150,13 @@ export default function LlmPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      const data = (await response.json()) as ProviderTestResult | OllamaTestResponse
+      const data = (await response.json()) as
+        | ProviderTestResult
+        | OllamaTestResponse
       if (!response.ok || !(data as ProviderTestResult)?.ok) {
         throw new Error(
-          (data as ProviderTestResult)?.message ?? 'Verbindungstest fehlgeschlagen.'
+          (data as ProviderTestResult)?.message ??
+            'Verbindungstest fehlgeschlagen.'
         )
       }
 
@@ -204,7 +224,9 @@ export default function LlmPage() {
       setSummaryResult(data as LlmSummaryResponse)
     } catch (error) {
       setSummaryError(
-        error instanceof Error ? error.message : 'Zusammenfassung fehlgeschlagen.'
+        error instanceof Error
+          ? error.message
+          : 'Zusammenfassung fehlgeschlagen.'
       )
     } finally {
       setIsSummarizing(false)
@@ -252,7 +274,9 @@ export default function LlmPage() {
       setQuizResult(data as LlmQuizResponse)
     } catch (error) {
       setQuizError(
-        error instanceof Error ? error.message : 'Quiz-Generierung fehlgeschlagen.'
+        error instanceof Error
+          ? error.message
+          : 'Quiz-Generierung fehlgeschlagen.'
       )
     } finally {
       setIsQuizLoading(false)
@@ -267,8 +291,9 @@ export default function LlmPage() {
         Cloud-LLMs & Ollama
       </Typography>
       <Typography variant='body1' color='text.secondary' mb={3}>
-        Waehle einen Provider (Ollama, OpenAI oder Gemini), setze das Modell und fordere
-        Zusammenfassungen oder Quizfragen ueber ein einheitliches Interface an.
+        Waehle einen Provider (Ollama, OpenAI oder Gemini), setze das Modell und
+        fordere Zusammenfassungen oder Quizfragen ueber ein einheitliches
+        Interface an.
       </Typography>
 
       <Grid container spacing={3}>
@@ -279,8 +304,9 @@ export default function LlmPage() {
                 <Box>
                   <Typography variant='h6'>LLM-Anbieter</Typography>
                   <Typography variant='body2' color='text.secondary'>
-                    Steuere, ob lokal (Ollama) oder via Cloud (OpenAI / Gemini) generiert
-                    wird. Modellnamen koennen optional uebersteuert werden.
+                    Steuere, ob lokal (Ollama) oder via Cloud (OpenAI / Gemini)
+                    generiert wird. Modellnamen koennen optional uebersteuert
+                    werden.
                   </Typography>
                 </Box>
 
@@ -311,8 +337,8 @@ export default function LlmPage() {
                     provider === 'openai'
                       ? 'z.B. gpt-4o-mini'
                       : provider === 'gemini'
-                        ? 'z.B. gemini-1.5-flash'
-                        : 'z.B. llama3'
+                      ? 'z.B. gemini-1.5-flash'
+                      : 'z.B. llama3'
                   }
                   helperText='Leer lassen, um die Provider-Defaults zu nutzen.'
                 />
@@ -342,13 +368,6 @@ export default function LlmPage() {
                       fullWidth
                       placeholder='http://127.0.0.1:11434'
                     />
-                    <Button
-                      variant='contained'
-                      onClick={handleTestConnection}
-                      disabled={isTesting}
-                    >
-                      {isTesting ? 'Verbindung pruefen...' : 'Verbindung testen'}
-                    </Button>
                     {testResult && (
                       <Alert severity='success'>
                         {testResult.message} (Server: {testResult.baseUrl})
@@ -357,7 +376,11 @@ export default function LlmPage() {
                     {testError && <Alert severity='error'>{testError}</Alert>}
                     {testResult?.models && testResult.models.length > 0 && (
                       <Box>
-                        <Typography variant='subtitle2' color='text.secondary' mb={1}>
+                        <Typography
+                          variant='subtitle2'
+                          color='text.secondary'
+                          mb={1}
+                        >
                           Gefundene Modelle
                         </Typography>
                         <Stack direction='row' gap={1} flexWrap='wrap'>
@@ -380,7 +403,9 @@ export default function LlmPage() {
                       onClick={handleTestConnection}
                       disabled={isTesting}
                     >
-                      {isTesting ? 'Verbindung pruefen...' : 'Verbindung testen'}
+                      {isTesting
+                        ? 'Verbindung pruefen...'
+                        : 'Verbindung testen'}
                     </Button>
                     {testResult && (
                       <Alert severity='success'>
@@ -428,15 +453,22 @@ export default function LlmPage() {
                   onClick={handleSummary}
                   disabled={isSummarizing}
                 >
-                  {isSummarizing ? 'LLM fasst zusammen...' : 'Zusammenfassung anfordern'}
+                  {isSummarizing
+                    ? 'LLM fasst zusammen...'
+                    : 'Zusammenfassung anfordern'}
                 </Button>
 
                 {summaryError && <Alert severity='error'>{summaryError}</Alert>}
 
                 {summaryResult && (
                   <Box>
-                    <Typography variant='subtitle2' color='text.secondary' mb={1}>
-                      Antwort von {summaryResult.model} ({summaryResult.provider})
+                    <Typography
+                      variant='subtitle2'
+                      color='text.secondary'
+                      mb={1}
+                    >
+                      Antwort von {summaryResult.model} (
+                      {summaryResult.provider})
                     </Typography>
                     <Box
                       sx={{
@@ -477,8 +509,8 @@ export default function LlmPage() {
                 <Box>
                   <Typography variant='h6'>Quizfragen generieren</Typography>
                   <Typography variant='body2' color='text.secondary'>
-                    Nutzt generateQuiz(), das das gewaehlte LLM dynamisch ansteuert und
-                    ein JSON mit Fragen zurueckgibt.
+                    Nutzt generateQuiz(), das das gewaehlte LLM dynamisch
+                    ansteuert und ein JSON mit Fragen zurueckgibt.
                   </Typography>
                 </Box>
 
@@ -519,20 +551,29 @@ export default function LlmPage() {
                   onClick={handleQuiz}
                   disabled={isQuizLoading}
                 >
-                  {isQuizLoading ? 'Quiz wird erstellt...' : 'Quizfragen anfordern'}
+                  {isQuizLoading
+                    ? 'Quiz wird erstellt...'
+                    : 'Quizfragen anfordern'}
                 </Button>
 
                 {quizError && <Alert severity='error'>{quizError}</Alert>}
 
                 {quizResult && (
                   <Box>
-                    <Typography variant='subtitle2' color='text.secondary' mb={1}>
-                      {quizResult.questions.length} Fragen von {quizResult.model} (
-                      {quizResult.provider})
+                    <Typography
+                      variant='subtitle2'
+                      color='text.secondary'
+                      mb={1}
+                    >
+                      {quizResult.questions.length} Fragen von{' '}
+                      {quizResult.model} ({quizResult.provider})
                     </Typography>
                     <Stack spacing={2}>
                       {quizResult.questions.map((question, index) => (
-                        <Card key={`${question.question}-${index}`} variant='outlined'>
+                        <Card
+                          key={`${question.question}-${index}`}
+                          variant='outlined'
+                        >
                           <CardContent>
                             <Typography fontWeight='bold'>
                               {index + 1}. {question.question}
@@ -552,7 +593,11 @@ export default function LlmPage() {
                               ))}
                             </Stack>
                             {question.explanation && (
-                              <Typography variant='body2' color='text.secondary' mt={1}>
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                                mt={1}
+                              >
                                 Hinweis: {question.explanation}
                               </Typography>
                             )}

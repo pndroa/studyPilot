@@ -50,6 +50,46 @@ export class LangChainRedisHarness {
     return documentId ? this.getVectorKey(documentId) : this.indexKey
   }
 
+  /**
+   * Returns cached vector stats without re-embedding the document.
+   */
+  async getCachedIndexSummary(documentId: string): Promise<IndexSummary> {
+    const vectorKey = this.getVectorKey(documentId)
+    const [vectorCount, firstEntry] = await Promise.all([
+      this.redis.hlen(vectorKey),
+      this.redis.hget(vectorKey, 'chunk:0'),
+    ])
+
+    if (!vectorCount || vectorCount <= 0) {
+      return { vectorCount: 0, dimensions: 0 }
+    }
+
+    try {
+      const parsed = firstEntry ? (JSON.parse(firstEntry) as StoredVector) : null
+      return {
+        vectorCount,
+        dimensions: parsed?.vector.length ?? 0,
+      }
+    } catch (error) {
+      console.warn('Konnte Cached Embeddings nicht lesen', error)
+      return { vectorCount, dimensions: 0 }
+    }
+  }
+
+  /**
+   * Ensures embeddings for a document are present. If missing, chunks get indexed.
+   */
+  async ensureDocumentIndexed(
+    documentId: string,
+    chunks: string[]
+  ): Promise<IndexSummary> {
+    const cached = await this.getCachedIndexSummary(documentId)
+    if (cached.vectorCount > 0) {
+      return cached
+    }
+    return this.indexChunks(documentId, chunks)
+  }
+
   async indexChunks(
     documentId: string,
     chunks: string[]
