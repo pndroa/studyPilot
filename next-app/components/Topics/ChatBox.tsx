@@ -12,12 +12,20 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ChatMessage, Sender, FlashCardData } from '@/types/topics'
 import ChatImportButton from '@/components/Topics/ChatImportButton'
-import type { LlmProvider } from '@/types/llm'
+import type {
+  LlmFlashcardItem,
+  LlmFlashcardResponse,
+  LlmProvider,
+  LlmQuizQuestion,
+  LlmQuizResponse,
+} from '@/types/llm'
 import type { DocumentAnalysisResponse, DocumentSummaryResult } from '@/types/analysis'
 import { loadLlmConfig } from '@/lib/llm/config'
+import DocumentPickerDialog from '@/components/Library/DocumentPickerDialog'
 
 interface ChatBoxProps {
   topicId: string
@@ -46,6 +54,7 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
   const [flashStatus, setFlashStatus] = useState<string | null>(null)
   const [summaryStatus, setSummaryStatus] = useState<string | null>(null)
   const [isClearing, setIsClearing] = useState(false)
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false)
 
   useEffect(() => {
     const storedCfg = loadLlmConfig()
@@ -197,7 +206,9 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
         }),
       })
 
-      const data = await response.json()
+      const data = (await response.json()) as LlmQuizResponse & {
+        message?: string
+      }
       if (!response.ok || !data.questions) {
         throw new Error(data?.message || 'Quiz konnte nicht generiert werden.')
       }
@@ -205,7 +216,7 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
       localStorage.setItem(
         STORAGE_KEYS.quizzes(topicId),
         JSON.stringify(
-          data.questions.map((q: any, index: number) => ({
+          data.questions.map((q: LlmQuizQuestion, index: number) => ({
             id: `${topicId}-${Date.now()}-${index}`,
             topicId,
             question: q.question,
@@ -220,6 +231,18 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
         err instanceof Error ? err.message : 'Fehler bei der Quiz-Generierung.'
       )
     }
+  }
+
+  const handleLibrarySelection = (doc: DocumentAnalysisResponse) => {
+    setContextDoc(doc)
+    persistDocs(doc)
+
+    const userMsg = makeMessage('user', `📂 Dokument aus Bibliothek: ${doc.fileName}`)
+    const aiMsg = makeMessage(
+      'ai',
+      'Dokument geladen. Du kannst direkt Fragen stellen oder Quiz/Flashcards generieren.'
+    )
+    persistMessages([...messages, userMsg, aiMsg])
   }
 
   const handleGenerateFlashcards = async () => {
@@ -243,17 +266,21 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
         }),
       })
 
-      const data = await response.json()
+      const data = (await response.json()) as LlmFlashcardResponse & {
+        message?: string
+      }
       if (!response.ok || !data.cards) {
         throw new Error(data?.message || 'Flashcards konnten nicht generiert werden.')
       }
 
-      const cards: FlashCardData[] = data.cards.map((c: any, index: number) => ({
-        id: `${topicId}-${Date.now()}-${index}`,
-        question: c.question,
-        answer: c.answer,
-        topicId,
-      }))
+      const cards: FlashCardData[] = data.cards.map(
+        (c: LlmFlashcardItem, index: number) => ({
+          id: `${topicId}-${Date.now()}-${index}`,
+          question: c.question,
+          answer: c.answer,
+          topicId,
+        })
+      )
       localStorage.setItem(
         STORAGE_KEYS.flashcards(topicId),
         JSON.stringify(cards)
@@ -292,11 +319,14 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
         }
       )
 
-      const data = await response.json()
+      const data = (await response.json()) as {
+        summary?: DocumentSummaryResult | string
+        message?: string
+      }
       if (!response.ok || !data.summary) {
         throw new Error(data?.message || 'Zusammenfassung konnte nicht erstellt werden.')
       }
-      const rawSummary = (data as { summary: any }).summary
+      const rawSummary = data.summary
       const summaryResult: DocumentSummaryResult =
         typeof rawSummary === 'string'
           ? {
@@ -342,7 +372,17 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
                   <Chip label='Kein Dokument' size='small' variant='outlined' />
                 )}
               </Box>
-              <ChatImportButton onUploaded={handleImported} />
+              <Stack direction='row' spacing={1}>
+                <ChatImportButton onUploaded={handleImported} />
+                <Button
+                  variant='outlined'
+                  size='small'
+                  startIcon={<LibraryBooksIcon />}
+                  onClick={() => setIsLibraryOpen(true)}
+                >
+                  Bibliothek
+                </Button>
+              </Stack>
             </Box>
             {!provider && (
               <Alert severity='warning'>Bitte LLM-Konfiguration im LLM-Tab setzen.</Alert>
@@ -428,6 +468,12 @@ export default function ChatBox({ topicId }: ChatBoxProps) {
         {flashStatus && <Alert severity='info'>{flashStatus}</Alert>}
         {summaryStatus && <Alert severity='info'>{summaryStatus}</Alert>}
       </Stack>
+
+      <DocumentPickerDialog
+        open={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onSelect={handleLibrarySelection}
+      />
     </Box>
   )
 }
