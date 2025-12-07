@@ -5,7 +5,6 @@ import { Box, Typography, Button, TextField, Stack } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import TopicList from '@/components/Topics/TopicList'
 import type { Topic } from '@/types/topics'
-import { mockTopics } from '@/utils/mockData'
 
 const STORAGE_KEY = 'topics:list'
 const RELATED_KEYS = (topicId: string) => [
@@ -26,7 +25,7 @@ export default function TopicsPage() {
 
   useEffect(() => {
     const stored = loadTopics()
-    setTopics(stored.length ? stored : mockTopics)
+    setTopics(stored)
   }, [])
 
   const handleAddTopic = () => {

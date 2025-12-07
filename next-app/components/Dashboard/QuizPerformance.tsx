@@ -10,11 +10,15 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts'
-import { mockQuizTrend } from '@/utils/mockData'
 import type { QuizDataPoint } from '@/types/dashboard'
 import { getChartTheme } from '@/utils/chartTheme'
 
-export default function QuizPerformance() {
+interface QuizPerformanceProps {
+  data: QuizDataPoint[]
+  isLoading?: boolean
+}
+
+export default function QuizPerformance({ data, isLoading }: QuizPerformanceProps) {
   const theme = useTheme()
   const chart = getChartTheme(theme)
 
@@ -34,45 +38,53 @@ export default function QuizPerformance() {
           Quiz Performance
         </Typography>
 
-        <ResponsiveContainer width='100%' height={250}>
-          <LineChart data={mockQuizTrend as QuizDataPoint[]}>
-            <CartesianGrid stroke={chart.gridColor} />
-            <XAxis
-              dataKey='date'
-              stroke={chart.axisColor}
-              tick={{ fill: chart.axisColor }}
-            />
-            <YAxis stroke={chart.axisColor} tick={{ fill: chart.axisColor }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: chart.tooltip.background,
-                border: chart.tooltip.border,
-                borderRadius: 8,
-              }}
-              labelStyle={{ color: chart.tooltip.labelColor }}
-              itemStyle={{ color: chart.tooltip.textColor }}
-              cursor={{ fill: chart.tooltip.cursorFill }}
-            />
-            <Line
-              type='monotone'
-              dataKey='score'
-              stroke={chart.primaryColor}
-              strokeWidth={2}
-              dot={{
-                r: 4,
-                fill: chart.activeColor,
-                stroke: theme.palette.background.paper,
-                strokeWidth: 2,
-              }}
-              activeDot={{
-                r: 6,
-                fill: chart.activeColor,
-                stroke: theme.palette.background.paper,
-                strokeWidth: 2,
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {isLoading ? (
+          <Typography color='text.secondary'>Lade Quiz-Verlauf ...</Typography>
+        ) : data.length === 0 ? (
+          <Typography color='text.secondary'>
+            Noch keine Quiz-Ergebnisse gespeichert.
+          </Typography>
+        ) : (
+          <ResponsiveContainer width='100%' height={250}>
+            <LineChart data={data}>
+              <CartesianGrid stroke={chart.gridColor} />
+              <XAxis
+                dataKey='date'
+                stroke={chart.axisColor}
+                tick={{ fill: chart.axisColor }}
+              />
+              <YAxis stroke={chart.axisColor} tick={{ fill: chart.axisColor }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: chart.tooltip.background,
+                  border: chart.tooltip.border,
+                  borderRadius: 8,
+                }}
+                labelStyle={{ color: chart.tooltip.labelColor }}
+                itemStyle={{ color: chart.tooltip.textColor }}
+                cursor={{ fill: chart.tooltip.cursorFill }}
+              />
+              <Line
+                type='monotone'
+                dataKey='score'
+                stroke={chart.primaryColor}
+                strokeWidth={2}
+                dot={{
+                  r: 4,
+                  fill: chart.activeColor,
+                  stroke: theme.palette.background.paper,
+                  strokeWidth: 2,
+                }}
+                activeDot={{
+                  r: 6,
+                  fill: chart.activeColor,
+                  stroke: theme.palette.background.paper,
+                  strokeWidth: 2,
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   )

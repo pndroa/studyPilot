@@ -14,3 +14,18 @@ export interface DashboardStats {
   streak: number
   studyDays: StudyDayData[]
 }
+
+export interface QuizResultRecord {
+  id: string
+  topicId: string
+  correct: number
+  total: number
+  score: number
+  createdAt: string
+}
+
+export interface DashboardResponse {
+  stats: DashboardStats
+  quizTrend: QuizDataPoint[]
+  recentResults: QuizResultRecord[]
+}

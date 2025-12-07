@@ -1,13 +1,14 @@
 'use client'
 
-import { Card, CardContent, Typography } from '@mui/material'
+import { Card, CardContent, Skeleton, Typography } from '@mui/material'
 
 interface StatsCardProps {
   title: string
   value: string | number
+  loading?: boolean
 }
 
-export default function StatsCard({ title, value }: StatsCardProps) {
+export default function StatsCard({ title, value, loading }: StatsCardProps) {
   return (
     <Card
       sx={{
@@ -24,9 +25,13 @@ export default function StatsCard({ title, value }: StatsCardProps) {
         <Typography variant='subtitle2' color='text.secondary'>
           {title}
         </Typography>
-        <Typography variant='h5' fontWeight='bold'>
-          {value}
-        </Typography>
+        {loading ? (
+          <Skeleton variant='text' width={120} height={36} />
+        ) : (
+          <Typography variant='h5' fontWeight='bold'>
+            {value}
+          </Typography>
+        )}
       </CardContent>
     </Card>
   )

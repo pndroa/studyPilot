@@ -41,6 +41,11 @@ export default function QuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<number[]>([])
   const [finished, setFinished] = useState(false)
+  const [isSavingResult, setIsSavingResult] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<{
+    message: string
+    severity: 'info' | 'success' | 'error'
+  } | null>(null)
 
   useEffect(() => {
     const cfg = loadLlmConfig()
@@ -151,12 +156,50 @@ export default function QuizPage() {
       setAnswers(emptyAnswers)
       setCurrentIndex(0)
       setFinished(false)
+      setSaveStatus(null)
       persistProgress(topicId, { index: 0, answers: emptyAnswers, finished: false })
-      setProgressColor('primary')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unbekannter Fehler bei der Quiz-Generierung.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleFinish = async () => {
+    if (finished || quizzes.length === 0) return
+    const correctCount = answers.filter(
+      (ans, idx) => ans === quizzes[idx]?.answerIndex
+    ).length
+    setFinished(true)
+    setIsSavingResult(true)
+    setSaveStatus({ message: 'Speichere Ergebnis ...', severity: 'info' })
+    try {
+      const response = await fetch('/api/progress/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topicId,
+          correct: correctCount,
+          total: quizzes.length,
+        }),
+      })
+      const payload = (await response.json().catch(() => ({}))) as { message?: string }
+      if (!response.ok) {
+        throw new Error(
+          payload?.message || 'Quiz-Ergebnis konnte nicht gespeichert werden.'
+        )
+      }
+      setSaveStatus({ message: 'Quiz-Ergebnis gespeichert.', severity: 'success' })
+    } catch (err) {
+      setSaveStatus({
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Quiz-Ergebnis konnte nicht gespeichert werden.',
+        severity: 'error',
+      })
+    } finally {
+      setIsSavingResult(false)
     }
   }
 
@@ -178,7 +221,7 @@ export default function QuizPage() {
 
             {!hasConfig && (
               <Alert severity='warning'>
-                Bitte LLM im Tab "LLM" konfigurieren. Aktuell kein Provider gesetzt.
+                Bitte LLM im Tab &quot;LLM&quot; konfigurieren. Aktuell kein Provider gesetzt.
               </Alert>
             )}
 
@@ -278,27 +321,30 @@ export default function QuizPage() {
                     >
                       Nächste
                     </Button>
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    onClick={handleFinish}
+                    disabled={
+                      finished || answers.some((a) => a === -1) || quizzes.length === 0 || isSavingResult
+                    }
+                  >
+                    {isSavingResult ? 'Speichere Ergebnis...' : 'Auswertung'}
+                  </Button>
+                  {finished && (
                     <Button
-                      variant='contained'
-                      color='primary'
-                      onClick={() => setFinished(true)}
-                      disabled={finished || answers.some((a) => a === -1)}
+                      variant='outlined'
+                      color='secondary'
+                      onClick={() => {
+                        setAnswers(Array(quizzes.length).fill(-1))
+                        setCurrentIndex(0)
+                        setFinished(false)
+                        setSaveStatus(null)
+                      }}
                     >
-                      Auswertung
+                      Quiz wiederholen
                     </Button>
-                    {finished && (
-                      <Button
-                        variant='outlined'
-                        color='secondary'
-                        onClick={() => {
-                          setAnswers(Array(quizzes.length).fill(-1))
-                          setCurrentIndex(0)
-                          setFinished(false)
-                        }}
-                      >
-                        Quiz wiederholen
-                      </Button>
-                    )}
+                  )}
                   </Stack>
 
                   {finished && (
@@ -309,6 +355,7 @@ export default function QuizPage() {
                       total={quizzes.length}
                     />
                   )}
+                  {saveStatus && <Alert severity={saveStatus.severity}>{saveStatus.message}</Alert>}
 
                   <Button
                     variant='text'
@@ -440,23 +487,23 @@ function QuestionView({
     <Stack spacing={1.5}>
       <Typography variant='h6'>{question.question}</Typography>
       {question.options.map((opt, idx) => {
-        const isSelected = selected === idx
-        const isCorrect = question.answerIndex === idx
-        const color =
-          showSolution && isCorrect
-            ? 'success'
-            : showSolution && isSelected && !isCorrect
-              ? 'error'
-              : 'primary'
+      const isSelected = selected === idx
+      const isCorrect = question.answerIndex === idx
+      const color: 'success' | 'error' | 'primary' =
+        showSolution && isCorrect
+          ? 'success'
+          : showSolution && isSelected && !isCorrect
+            ? 'error'
+            : 'primary'
 
         return (
-          <Button
-            key={idx}
-            variant={isSelected ? 'contained' : 'outlined'}
-            color={color as any}
-            onClick={() => onSelect(idx)}
-            sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-          >
+        <Button
+          key={idx}
+          variant={isSelected ? 'contained' : 'outlined'}
+          color={color}
+          onClick={() => onSelect(idx)}
+          sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+        >
             {opt}
           </Button>
         )
