@@ -1,11 +1,8 @@
-export const DEFAULT_OLLAMA_BASE_URL =
-  process.env.OLLAMA_BASE_URL ?? 'http://127.0.0.1:11434'
+export const DEFAULT_OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL
 const LIST_TIMEOUT_MS = 10_000
 const GENERATE_TIMEOUT_MS = 120_000
 
-export const SUPPORTED_OLLAMA_MODELS = ['llama3', 'mistral', 'llama2'] as const
-
-export type SupportedOllamaModel = (typeof SUPPORTED_OLLAMA_MODELS)[number]
+export const SUPPORTED_OLLAMA_MODELS = listOllamaModels(DEFAULT_OLLAMA_BASE_URL)
 
 export interface OllamaModelInfo {
   name: string
@@ -29,7 +26,7 @@ export interface OllamaGenerateResult {
 
 export function normalizeBaseUrl(baseUrl?: string): string {
   const value = baseUrl?.trim() || DEFAULT_OLLAMA_BASE_URL
-  return value.endsWith('/') ? value.slice(0, -1) : value
+  return value?.endsWith('/') ? value.slice(0, -1) : (value as string)
 }
 
 export async function listOllamaModels(
@@ -60,10 +57,11 @@ export async function testOllamaConnection(
   baseUrl?: string
 ): Promise<OllamaConnectionResult> {
   const models = await listOllamaModels(baseUrl)
+  const supportedModelsList = await SUPPORTED_OLLAMA_MODELS
   const supportedModels = models
     .filter((model) =>
-      SUPPORTED_OLLAMA_MODELS.some((supported) =>
-        model.name.toLowerCase().includes(supported)
+      supportedModelsList.some((supported: OllamaModelInfo) =>
+        model.name.toLowerCase().includes(supported.name)
       )
     )
     .map((model) => model.name)
@@ -88,7 +86,8 @@ export async function generateWithOllama(input: {
   }
 
   const targetBaseUrl = normalizeBaseUrl(baseUrl)
-  const targetModel = model?.trim() || SUPPORTED_OLLAMA_MODELS[0]
+  const supportedModels = await SUPPORTED_OLLAMA_MODELS
+  const targetModel = model?.trim() || supportedModels[0]?.name
   const started = Date.now()
 
   const response = await fetch(`${targetBaseUrl}/api/generate`, {
